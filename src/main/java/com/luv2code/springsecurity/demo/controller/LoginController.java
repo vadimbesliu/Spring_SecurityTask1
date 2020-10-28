@@ -23,7 +23,7 @@ public class LoginController {
 		return "access-denied";
 	}
 	@GetMapping("/directors")
-	public String showRealMadrid(){
+	public String showDirectors(){
 		return "directors";
 	}
 }
