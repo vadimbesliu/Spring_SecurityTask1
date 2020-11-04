@@ -1,5 +1,6 @@
 package com.luv2code.springsecurity.demo.config;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -7,19 +8,20 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.core.userdetails.User;
 
+import javax.sql.DataSource;
+
 @Configuration
 @EnableWebSecurity
 public class DemoSecurityConfig extends WebSecurityConfigurerAdapter {
+    @Autowired
+    DataSource dataSource;
 
     @Override
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
-        User.UserBuilder users = User.withDefaultPasswordEncoder();
-
-        auth.inMemoryAuthentication()
-                .withUser(users.username("john").password("test").roles("EMPLOYEE"))
-                .withUser(users.username("mary").password("test").roles("EMPLOYEE","MANAGER"))
-                .withUser(users.username("susan").password("test").roles("EMPLOYEE","MANAGER","ADMIN"))
-                .withUser((users.username("vadim").password("test").roles("EMPLOYEE","MANAGER","ADMIN","DIRECTOR")));
+        auth.jdbcAuthentication()
+                .dataSource(dataSource)
+                .usersByUsernameQuery("SELECT username,password,enabled FROM users where username =?")
+                .authoritiesByUsernameQuery("SELECT username,authority FROM authorities where username =?");
     }
 
     @Override
@@ -37,4 +39,5 @@ public class DemoSecurityConfig extends WebSecurityConfigurerAdapter {
                 .and().logout().permitAll()
                 .and().exceptionHandling().accessDeniedPage("/access-denied");
     }
+
 }
